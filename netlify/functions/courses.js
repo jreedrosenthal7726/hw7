@@ -94,34 +94,42 @@ exports.handler = async function(event) {
     returnValue.sections.push(sectionObject)
 
     // 🔥 your code for the reviews/ratings goes here
+    //pull review data but link to section Id
     let reviewQuery = await db.collection(`reviews`).where(`sectionId`, `==`, sectionId).get()
     let reviews = reviewQuery.docs
-
+    //create review object
     let reviewArray = []
+    //create sum function to eventually calculate averages
     let sum = 0
+    //loop through reviews
      for (let reviewIndex=0; reviewIndex < reviews.length; reviewIndex++){
         let reviewPush = reviews[reviewIndex].data()
+        //push out review information
          reviewArray.push(reviewPush)
         let ratings = reviewPush.rating
         sum = sum + ratings
       }
+      //add review information to review object
       sectionObject.reviews = reviewArray
-   
+      //create total review objects
       let sectionTotal = []
       let reviewNumber = reviewQuery.size
+      //push total to section object
       sectionTotal.push(reviewNumber)
       sectionObject.totalSectionReviews = sectionTotal
+      //create section average objects
       let sectionAverage = []
       let average = sum / reviewNumber
+      //push average to section object
       sectionAverage.push(average)
       sectionObject.SectionAverage = average
    }
-
+   //create a value that adds total reviews
    returnValue.totalReviews = []
    let totalReviewQuery = await db.collection(`reviews`).get()
    let sum = totalReviewQuery.size
    returnValue.totalReviews = sum
-
+   //create a value that calculates total ratings
    returnValue.totalAverage = []
    let totalRatingQuery = await db.collection(`reviews`).get()
    let reviewRatings = totalRatingQuery.docs
@@ -132,6 +140,7 @@ exports.handler = async function(event) {
     let overallRating = ratingPush.rating
     totalSum = totalSum + overallRating
    }
+   //Calculate total average and add to return Value
    let completeAverage = totalSum / sum
    returnValue.totalAverage = completeAverage
 
