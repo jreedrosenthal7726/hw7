@@ -66,10 +66,10 @@ exports.handler = async function(event) {
 
   // ask Firebase for the sections corresponding to the Document ID of the course, wait for the response
   let sectionsQuery = await db.collection('sections').where(`courseId`, `==`, courseId).get()
-
+  
   // get the documents from the query
   let sections = sectionsQuery.docs
-
+  
   // loop through the documents
   for (let i=0; i < sections.length; i++) {
     // get the document ID of the section
@@ -94,7 +94,46 @@ exports.handler = async function(event) {
     returnValue.sections.push(sectionObject)
 
     // 🔥 your code for the reviews/ratings goes here
-  }
+    let reviewQuery = await db.collection(`reviews`).where(`sectionId`, `==`, sectionId).get()
+    let reviews = reviewQuery.docs
+
+    let reviewArray = []
+    let sum = 0
+     for (let reviewIndex=0; reviewIndex < reviews.length; reviewIndex++){
+        let reviewPush = reviews[reviewIndex].data()
+         reviewArray.push(reviewPush)
+        let ratings = reviewPush.rating
+        sum = sum + ratings
+      }
+      sectionObject.reviews = reviewArray
+   
+      let sectionTotal = []
+      let reviewNumber = reviewQuery.size
+      sectionTotal.push(reviewNumber)
+      sectionObject.totalSectionReviews = sectionTotal
+      let sectionAverage = []
+      let average = sum / reviewNumber
+      sectionAverage.push(average)
+      sectionObject.SectionAverage = average
+   }
+
+   returnValue.totalReviews = []
+   let totalReviewQuery = await db.collection(`reviews`).get()
+   let sum = totalReviewQuery.size
+   returnValue.totalReviews = sum
+
+   returnValue.totalAverage = []
+   let totalRatingQuery = await db.collection(`reviews`).get()
+   let reviewRatings = totalRatingQuery.docs
+
+   let totalSum = 0
+   for (let y=0; y < reviewRatings.length; y++){
+    let ratingPush = reviewRatings[y].data()
+    let overallRating = ratingPush.rating
+    totalSum = totalSum + overallRating
+   }
+   let completeAverage = totalSum / sum
+   returnValue.totalAverage = completeAverage
 
   // return the standard response
   return {
